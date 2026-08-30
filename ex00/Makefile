@@ -10,7 +10,7 @@ all: ${NAME}
 ${NAME}: ${OBJS}
 	${CPP} ${CPPFLAGS} ${OBJS} -o ${NAME}
 
-%.o: %.cpp Array.hpp
+%.o: %.cpp RNP.hpp
 	${CPP} ${CPPFLAGS} -c $< -o $@
 
 clean:
