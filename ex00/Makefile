@@ -1,4 +1,4 @@
-NAME = RNP
+NAME = btc
 CPP = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 
