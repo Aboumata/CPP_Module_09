@@ -1,6 +1,8 @@
 #include "BitcoinExchange.hpp"
 #include <fstream>
 #include <sstream>
+#include <iostream>
+#include <cctype>
 
 BitcoinExchange::BitcoinExchange() {
 
@@ -18,6 +20,35 @@ BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &other) {
 
 BitcoinExchange::~BitcoinExchange() {
 
+}
+
+bool BitcoinExchange::isValidDate(const std::string& date) const {
+    if (date.size() != 10 || date[4] != '-' || date[7] != '-')
+        return false;
+
+    for (size_t i = 0; i < date.size(); i++) {
+        if (i == 4 || i == 7)
+            continue;
+        if (!isdigit(static_cast<unsigned char>(date[i])))
+            return false;
+    }
+
+    std::string yearStr = date.substr(0, 4);
+    std::string monthStr = date.substr(5, 2);
+    std::string dayStr = date.substr(8, 2);
+
+    int year, month, day;
+    std::stringstream ssYear(yearStr);
+    std::stringstream ssMonth (monthStr);
+    std::stringstream ssDay(dayStr);
+
+    if (!(ssYear >> year) || !(ssMonth >> month) || !(ssDay>> day))
+        return false;
+
+    if (month < 1 || month > 12)
+        return false;
+
+    return true;
 }
 
 bool BitcoinExchange::loadDatabase(const std::string& filename) {
@@ -48,5 +79,28 @@ bool BitcoinExchange::loadDatabase(const std::string& filename) {
 }
 
 void BitcoinExchange::processInput(const std::string& filename) {
+    std::ifstream file(filename.c_str());
+    if (!file.is_open()) {
+        std::cerr << "Error: could not open file." << std::endl;
+        return;
+    }
 
+    std::string line;
+    getline(file, line);
+    while (getline(file, line)) {
+        if (line.empty())
+            return;
+        std::size_t pos = line.find('|');
+        if (pos == std::string::npos)
+            std::cerr << "Error: bad input =>" << line << std::endl;
+
+        std::string dateStr = line.substr(0, pos);
+        std::string valueStr = line.substr(pos + 1);
+
+        if (!isValidDate(dateStr)) {
+            std::cerr << "Error: bad input =>" << dateStr << std::endl;
+            return;
+        }
+
+    }
 }

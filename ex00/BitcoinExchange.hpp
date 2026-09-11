@@ -7,7 +7,7 @@
 class BitcoinExchange {
 private:
     std::map<std::string, double> _db;
-    bool isValidDate(const std::string& other) const;
+    bool isValidDate(const std::string& date) const;
     double getRate(const std::string& date) const;
 
 public:
