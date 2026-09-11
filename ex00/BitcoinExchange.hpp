@@ -7,13 +7,13 @@
 class BitcoinExchange {
 private:
     std::map<std::string, double> _db;
-    bool isValidDate(const std::string& date) const;
+    bool isValidDate(const std::string& other) const;
     double getRate(const std::string& date) const;
 
 public:
     BitcoinExchange();
-    BitcoinExchange(const BitcoinExchange& date);
-    BitcoinExchange& operator=(const BitcoinExchange& date);
+    BitcoinExchange(const BitcoinExchange& other);
+    BitcoinExchange& operator=(const BitcoinExchange& other);
     ~BitcoinExchange();
 
     bool loadDatabase(const std::string& filename);

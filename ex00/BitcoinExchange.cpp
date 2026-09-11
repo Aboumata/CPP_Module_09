@@ -6,13 +6,13 @@ BitcoinExchange::BitcoinExchange() {
 
 }
 
-BitcoinExchange::BitcoinExchange(const BitcoinExchange &date) : _db(date._db) {
+BitcoinExchange::BitcoinExchange(const BitcoinExchange &other) : _db(other._db) {
 
 }
 
-BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &date) {
-    if (this != &date)
-        _db = date._db;
+BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &other) {
+    if (this != &other)
+        _db = other._db;
     return *this;
 }
 
@@ -21,11 +21,12 @@ BitcoinExchange::~BitcoinExchange() {
 }
 
 bool BitcoinExchange::loadDatabase(const std::string& filename) {
-    std::ifstream file((filename.data()));
+    std::ifstream file(filename.c_str());
     if (!file.is_open())
         return false;
 
     std::string line;
+    std::getline(file, line);
     while (std::getline(file, line)) {
         if (line.empty())
             continue;
@@ -38,9 +39,14 @@ bool BitcoinExchange::loadDatabase(const std::string& filename) {
 
         double value;
         std::stringstream ss(rate);
-        ss >> value;
+        if (!(ss >> value))
+            continue;
         _db[date] = value;
     }
 
     return true;
+}
+
+void BitcoinExchange::processInput(const std::string& filename) {
+
 }
