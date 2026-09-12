@@ -113,16 +113,16 @@ void BitcoinExchange::processLine(const std::string &line) const {
     std::string dateStr = line.substr(0, pos);
     std::string valueStr = line.substr(pos + 1);
 
-    std::size_t a = dateStr.find_first_not_of(" \t");
-    std::size_t b = dateStr.find_last_not_of(" \t");
+    std::size_t a = dateStr.find_first_not_of(" \t\r");
+    std::size_t b = dateStr.find_last_not_of(" \t\r");
 
     if (a == std::string::npos)
         dateStr = "";
     else
         dateStr = dateStr.substr(a, b - a + 1);
 
-    std::size_t c = valueStr.find_first_not_of(" \t");
-    std::size_t d = valueStr.find_last_not_of(" \t");
+    std::size_t c = valueStr.find_first_not_of(" \t\r");
+    std::size_t d = valueStr.find_last_not_of(" \t\r");
     if (c == std::string::npos)
         valueStr = "";
     else
@@ -155,6 +155,7 @@ void BitcoinExchange::processLine(const std::string &line) const {
         std::cerr << "Error: bad input => " << dateStr << std::endl;
         return;
     }
+    std::cout.precision(10);
     std::cout << dateStr << " => " << value << " = " << value * rate <<  std::endl;
 }
 
@@ -167,6 +168,9 @@ void BitcoinExchange::processInput(const std::string& filename) const {
 
     std::string line;
     while (getline(file, line)) {
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
+
         if (line.empty())
             continue;
 
