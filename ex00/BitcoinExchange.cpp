@@ -22,7 +22,7 @@ BitcoinExchange::~BitcoinExchange() {
 
 }
 
-bool BitcoinExchange::isValidDate(const std::string& date) const {
+bool BitcoinExchange::isValidDate(const std::string& date) {
     if (date.size() != 10 || date[4] != '-' || date[7] != '-')
         return false;
 
@@ -103,7 +103,62 @@ bool BitcoinExchange::loadDatabase(const std::string& filename) {
     return true;
 }
 
-void BitcoinExchange::processInput(const std::string& filename) {
+void BitcoinExchange::processLine(const std::string &line) const {
+    std::size_t pos = line.find('|');
+    if (pos == std::string::npos) {
+        std::cerr << "Error: bad input => " << line << std::endl;
+        return;
+    }
+
+    std::string dateStr = line.substr(0, pos);
+    std::string valueStr = line.substr(pos + 1);
+
+    std::size_t a = dateStr.find_first_not_of(" \t");
+    std::size_t b = dateStr.find_last_not_of(" \t");
+
+    if (a == std::string::npos)
+        dateStr = "";
+    else
+        dateStr = dateStr.substr(a, b - a + 1);
+
+    std::size_t c = valueStr.find_first_not_of(" \t");
+    std::size_t d = valueStr.find_last_not_of(" \t");
+    if (c == std::string::npos)
+        valueStr = "";
+    else
+        valueStr = valueStr.substr(c, d - c + 1);
+
+    if (!isValidDate(dateStr)) {
+        std::cerr << "Error: bad input => " << dateStr << std::endl;
+        return;
+    }
+
+    double value;
+    std::stringstream ss(valueStr);
+    if (!(ss >> value) || !ss.eof()) {
+        std::cerr << "Error: bad input => " << valueStr << std::endl;
+        return;
+    }
+
+    if (value < 0 ) {
+        std::cerr << "Error: not a positive number." << std::endl;
+        return;
+    }
+
+    if (value > 1000) {
+        std::cerr << "Error: too large a number." << std::endl;
+        return;
+    }
+
+    double rate;
+    if (!getRate(dateStr, rate)) {
+        std::cerr << "Error: bad input => " << dateStr << std::endl;
+        return;
+    }
+    std::cout << dateStr << " => " << value << " = " << value * rate <<  std::endl;
+}
+
+void BitcoinExchange::processInput(const std::string& filename) const {
     std::ifstream file(filename.c_str());
     if (!file.is_open()) {
         std::cerr << "Error: could not open file." << std::endl;
@@ -111,61 +166,13 @@ void BitcoinExchange::processInput(const std::string& filename) {
     }
 
     std::string line;
-    getline(file, line);
     while (getline(file, line)) {
         if (line.empty())
             continue;
-        std::size_t pos = line.find('|');
-        if (pos == std::string::npos) {
-            std::cerr << "Error: bad input => " << line << std::endl;
+
+        if (line == "date | value")
             continue;
-        }
 
-        std::string dateStr = line.substr(0, pos);
-        std::string valueStr = line.substr(pos + 1);
-
-        std::size_t a = dateStr.find_first_not_of(" \t");
-        std::size_t b = dateStr.find_last_not_of(" \t");
-
-        if (a == std::string::npos)
-            dateStr = "";
-        else
-            dateStr = dateStr.substr(a, b - a + 1);
-
-        std::size_t c = valueStr.find_first_not_of(" \t");
-        std::size_t d = valueStr.find_last_not_of(" \t");
-        if (c == std::string::npos)
-            valueStr = "";
-        else
-            valueStr = valueStr.substr(c, d - c + 1);
-
-        if (!isValidDate(dateStr)) {
-            std::cerr << "Error: bad input => " << dateStr << std::endl;
-            continue;
-        }
-
-        double value;
-        std::stringstream ss(valueStr);
-        if (!(ss >> value) || !ss.eof()) {
-            std::cerr << "Error: bad input => " << valueStr << std::endl;
-            continue;
-        }
-
-        if (value < 0 ) {
-            std::cerr << "Error: not a positive number." << std::endl;
-            continue;
-        }
-
-        if (value > 1000) {
-            std::cerr << "Error: too large a number." << std::endl;
-            continue;
-        }
-
-        double rate;
-        if (!getRate(dateStr, rate)) {
-            std::cerr << "Error: bad input => " << dateStr << std::endl;
-            continue;
-        }
-        std::cout << dateStr << " => " << value << " = " << value * rate <<  std::endl;
+        processLine(line);
     }
 }

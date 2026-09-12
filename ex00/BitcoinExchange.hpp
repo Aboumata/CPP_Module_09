@@ -7,8 +7,10 @@
 class BitcoinExchange {
 private:
     std::map<std::string, double> _db;
-    bool isValidDate(const std::string& date) const;
+
+    static bool isValidDate(const std::string& date);
     bool getRate(const std::string& date, double& rate) const;
+    void processLine(const std::string& line) const;
 
 public:
     BitcoinExchange();
@@ -17,7 +19,7 @@ public:
     ~BitcoinExchange();
 
     bool loadDatabase(const std::string& filename);
-    void processInput(const std::string& filename);
+    void processInput(const std::string& filename) const;
 };
 
 #endif
