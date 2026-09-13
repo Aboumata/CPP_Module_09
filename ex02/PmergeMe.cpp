@@ -4,6 +4,7 @@
 #include <climits>
 #include <iostream>
 #include <sys/time.h>
+#include <algorithm>
 
 PmergeMe::PmergeMe() {
 
@@ -61,10 +62,110 @@ void PmergeMe::sortVector(std::vector<int>& v) {
 
     std::vector<int> main = winners;
     main.insert(main.begin(), pend[0]);
+
+    std::size_t m = pend.size();
+    std::size_t prev = 1;
+    std::size_t jPrev2 = 1;
+    std::size_t jPrev1 = 3;
+
+    while (prev < m)
+    {
+        std::size_t j = jPrev1;
+
+        std::size_t last = std::min(j, m);
+
+        for (std::size_t i = last; i > prev; --i)
+        {
+            int loser = pend[i - 1];
+            int winner = winners[i - 1];
+
+            std::vector<int>::iterator partnerPos = std::lower_bound(main.begin(), main.end(), winner);
+            std::vector<int>::iterator pos = std::lower_bound(main.begin(), partnerPos, loser);
+
+            main.insert(pos, loser);
+        }
+
+        prev = j;
+        jPrev2 = jPrev1;
+        jPrev1 = jPrev1 + 2 * jPrev2;
+    }
+
+    if (hasStraggler)
+    {
+        std::vector<int>::iterator pos = std::lower_bound(main.begin(), main.end(), straggler);
+        main.insert(pos, straggler);
+    }
+    v = main;
 }
 
 void PmergeMe::sortDeque(std::deque<int>& d) {
-    (void) d;
+    if (d.size() < 2)
+        return;
+    bool hasStraggler = (d.size() % 2 == 1);
+    int  straggler = hasStraggler ? d[d.size() - 1] : 0;
+
+    std::deque <std::pair<int, int> > pairs;
+    for (std::size_t i = 0; i + 1 < d.size(); i += 2) {
+        if (d[i] > d[i + 1])
+            pairs.push_back(std::make_pair(d[i], d[i + 1 ]));
+        else
+            pairs.push_back(std::make_pair(d[i + 1], d[i]));
+    }
+
+    std::deque<int> winners;
+    for (std::size_t i = 0; i < pairs.size(); ++i)
+        winners.push_back(pairs[i].first);
+    sortDeque(winners);
+
+    std::deque<bool> used (pairs.size(), false);
+    std::deque<int> pend;
+
+    for (std::size_t i = 0; i < winners.size() ; ++i) {
+        for (std::size_t j = 0; j < pairs.size(); ++j) {
+            if (!used[j] && pairs[j].first == winners[i]) {
+                used[j] = true;
+                pend.push_back(pairs[j].second);
+                break;
+            }
+        }
+    }
+
+    std::deque<int> main = winners;
+    main.insert(main.begin(), pend[0]);
+
+    std::size_t m = pend.size();
+    std::size_t prev = 1;
+    std::size_t jPrev2 = 1;
+    std::size_t jPrev1 = 3;
+
+    while (prev < m)
+    {
+        std::size_t j = jPrev1;
+
+        std::size_t last = std::min(j, m);
+
+        for (std::size_t i = last; i > prev; --i)
+        {
+            int loser = pend[i - 1];
+            int winner = winners[i - 1];
+
+            std::deque<int>::iterator partnerPos = std::lower_bound(main.begin(), main.end(), winner);
+            std::deque<int>::iterator pos = std::lower_bound(main.begin(), partnerPos, loser);
+
+            main.insert(pos, loser);
+        }
+
+        prev = j;
+        jPrev2 = jPrev1;
+        jPrev1 = jPrev1 + 2 * jPrev2;
+    }
+
+    if (hasStraggler)
+    {
+        std::deque<int>::iterator pos = std::lower_bound(main.begin(), main.end(), straggler);
+        main.insert(pos, straggler);
+    }
+    d = main;
 }
 
 bool PmergeMe::parse(int ac, char **av) {
@@ -140,13 +241,6 @@ void PmergeMe::run() {
         std::cout << _vec[i] << " ";
     std::cout << std::endl;
 
-    std::cout << "Time to process a range of "
-              <<  _vec.size()
-              << " elements with std::vector : "
-              << vectorTime << " us" << std::endl;
-
-    std::cout << "Time to process a range of "
-          <<  _deq.size()
-          << " elements with std::deque : "
-          << dequeTime << " us" << std::endl;
+    std::cout << "Time to process a range of " <<  _vec.size() << " elements with std::vector : " << vectorTime << " us" << std::endl;
+    std::cout << "Time to process a range of " <<  _deq.size() << " elements with std::deque : " << dequeTime << " us" << std::endl;
 }

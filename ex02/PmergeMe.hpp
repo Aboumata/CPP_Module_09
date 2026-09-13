@@ -11,8 +11,8 @@ private:
     std::deque<int> _deq;
     std::vector<std::string> _input;
 
-    void sortVector(std::vector<int>& v);
-    void sortDeque(std::deque<int>& d);
+    static void sortVector(std::vector<int>& v);
+    static void sortDeque(std::deque<int>& d);
 public:
     PmergeMe();
     PmergeMe(const PmergeMe& other);
