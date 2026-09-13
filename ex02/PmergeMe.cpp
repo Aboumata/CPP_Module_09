@@ -27,7 +27,40 @@ PmergeMe::~PmergeMe() {
 }
 
 void PmergeMe::sortVector(std::vector<int>& v) {
-    (void) v;
+    if (v.size() < 2)
+        return;
+    bool hasStraggler = (v.size() % 2 == 1);
+    int  straggler = hasStraggler ? v[v.size() - 1] : 0;
+
+    std::vector <std::pair<int, int> > pairs;
+    for (std::size_t i = 0; i + 1 < v.size(); i += 2) {
+        if (v[i] > v[i + 1])
+            pairs.push_back(std::make_pair(v[i], v[i + 1 ]));
+        else
+            pairs.push_back(std::make_pair(v[i + 1], v[i]));
+    }
+
+    std::vector<int> winners;
+    winners.reserve(pairs.size());
+    for (std::size_t i = 0; i < pairs.size(); ++i)
+        winners.push_back(pairs[i].first);
+    sortVector(winners);
+
+    std::vector<bool> used (pairs.size(), false);
+    std::vector<int> pend;
+    
+    for (std::size_t i = 0; i < winners.size() ; ++i) {
+        for (std::size_t j = 0; j < pairs.size(); ++j) {
+            if (!used[j] && pairs[j].first == winners[i]) {
+                used[j] = true;
+                pend.push_back(pairs[j].second);
+                break;
+            }
+        }
+    }
+
+    std::vector<int> main = winners;
+    main.insert(main.begin(), pend[0]);
 }
 
 void PmergeMe::sortDeque(std::deque<int>& d) {
@@ -69,8 +102,6 @@ void PmergeMe::run() {
         std::cout << _input[i] << " ";
     std::cout << std::endl;
 
-    //std::cout << "--- timer 1 ---" <<std::endl;
-
     timeval s1 = {};
     timeval e1 = {};
 
@@ -87,8 +118,6 @@ void PmergeMe::run() {
 
     long vectorTime = (e1.tv_sec - s1.tv_sec)  * 1000000L
                     + (e1.tv_usec - s1.tv_usec);
-
-    //std::cout << "--- timer 2 ---" <<std::endl;
 
     timeval s2 = {};
     timeval e2 = {};
