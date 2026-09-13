@@ -2,12 +2,14 @@
 #include <string>
 #include <sstream>
 #include <climits>
+#include <iostream>
+#include <sys/time.h>
 
 PmergeMe::PmergeMe() {
 
 }
 
-PmergeMe::PmergeMe(const PmergeMe &other) : _vec(other._vec), _deq(other._deq) {
+PmergeMe::PmergeMe(const PmergeMe &other) : _vec(other._vec), _deq(other._deq), _input(other._input){
 
 }
 
@@ -15,6 +17,7 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other) {
     if (this != & other) {
         _vec = other._vec;
         _deq = other._deq;
+        _input = other._input;
     }
     return *this;
 }
@@ -23,8 +26,16 @@ PmergeMe::~PmergeMe() {
 
 }
 
+void PmergeMe::sortVector(std::vector<int>& v) {
+    (void) v;
+}
+
+void PmergeMe::sortDeque(std::deque<int>& d) {
+    (void) d;
+}
+
 bool PmergeMe::parse(int ac, char **av) {
-    for (int i = 0; i < ac; i++) {
+    for (int i = 1; i < ac; i++) {
         std::string token = av[i];
 
         if (token.empty())
@@ -42,7 +53,71 @@ bool PmergeMe::parse(int ac, char **av) {
             return false;
         if (n > INT_MAX)
             return false;
+
+        _input.push_back(token);
     }
 
     return true;
+}
+
+void PmergeMe::run() {
+    _vec.clear();
+    _deq.clear();
+
+    std::cout << "Before: ";
+    for (std::size_t i = 0; i < _input.size(); i++)
+        std::cout << _input[i] << " ";
+    std::cout << std::endl;
+
+    //std::cout << "--- timer 1 ---" <<std::endl;
+
+    timeval s1 = {};
+    timeval e1 = {};
+
+    gettimeofday(&s1, NULL);
+    for (std::size_t i = 0; i < _input.size(); ++i) {
+        std::stringstream ss(_input[i]);
+        int n;
+        ss >> n;
+        _vec.push_back(n);
+    }
+
+    sortVector(_vec);
+    gettimeofday(&e1, NULL);
+
+    long vectorTime = (e1.tv_sec - s1.tv_sec)  * 1000000L
+                    + (e1.tv_usec - s1.tv_usec);
+
+    //std::cout << "--- timer 2 ---" <<std::endl;
+
+    timeval s2 = {};
+    timeval e2 = {};
+    gettimeofday(&s2, NULL);
+    for (std::size_t i = 0; i < _input.size(); ++i) {
+        std::stringstream ss(_input[i]);
+        int n;
+        ss >> n;
+        _deq.push_back(n);
+    }
+    sortDeque(_deq);
+    gettimeofday(&e2, NULL);
+
+    long dequeTime = (e2.tv_sec - s2.tv_sec)  * 1000000L
+                + (e2.tv_usec - s2.tv_usec);
+
+
+    std::cout << "After: ";
+    for (std::size_t i = 0; i < _vec.size(); i++)
+        std::cout << _vec[i] << " ";
+    std::cout << std::endl;
+
+    std::cout << "Time to process a range of "
+              <<  _vec.size()
+              << " elements with std::vector : "
+              << vectorTime << " us" << std::endl;
+
+    std::cout << "Time to process a range of "
+          <<  _deq.size()
+          << " elements with std::deque : "
+          << dequeTime << " us" << std::endl;
 }
