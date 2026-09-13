@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <algorithm>
+#include <cctype>
 
 PmergeMe::PmergeMe() {
 
@@ -48,20 +49,18 @@ void PmergeMe::sortVector(std::vector<int>& v) {
     sortVector(winners);
 
     std::vector<bool> used (pairs.size(), false);
-    std::vector<int> pend;
+    std::vector<int> pend (pairs.size(), 0);
     
-    for (std::size_t i = 0; i < winners.size() ; ++i) {
-        for (std::size_t j = 0; j < pairs.size(); ++j) {
-            if (!used[j] && pairs[j].first == winners[i]) {
-                used[j] = true;
-                pend.push_back(pairs[j].second);
-                break;
-            }
-        }
+    for (std::size_t j = 0; j < pairs.size(); ++j) {
+        std::size_t p = std::lower_bound(winners.begin(), winners.end(), pairs[j].first) - winners.begin();
+        while (used[p])
+            ++p;
+        used[p] = true;
+        pend[p] = pairs[j].second;
     }
 
-    std::vector<int> main = winners;
-    main.insert(main.begin(), pend[0]);
+    std::vector<int> chain = winners;
+    chain.insert(chain.begin(), pend[0]);
 
     std::size_t m = pend.size();
     std::size_t prev = 1;
@@ -79,23 +78,24 @@ void PmergeMe::sortVector(std::vector<int>& v) {
             int loser = pend[i - 1];
             int winner = winners[i - 1];
 
-            std::vector<int>::iterator partnerPos = std::lower_bound(main.begin(), main.end(), winner);
-            std::vector<int>::iterator pos = std::lower_bound(main.begin(), partnerPos, loser);
+            std::vector<int>::iterator partnerPos = std::lower_bound(chain.begin(), chain.end(), winner);
+            std::vector<int>::iterator pos = std::lower_bound(chain.begin(), partnerPos, loser);
 
-            main.insert(pos, loser);
+            chain.insert(pos, loser);
         }
 
         prev = j;
+        std::size_t next = jPrev1 + 2 * jPrev2;
         jPrev2 = jPrev1;
-        jPrev1 = jPrev1 + 2 * jPrev2;
+        jPrev1 = next;
     }
 
     if (hasStraggler)
     {
-        std::vector<int>::iterator pos = std::lower_bound(main.begin(), main.end(), straggler);
-        main.insert(pos, straggler);
+        std::vector<int>::iterator pos = std::lower_bound(chain.begin(), chain.end(), straggler);
+        chain.insert(pos, straggler);
     }
-    v = main;
+    v = chain;
 }
 
 void PmergeMe::sortDeque(std::deque<int>& d) {
@@ -118,20 +118,18 @@ void PmergeMe::sortDeque(std::deque<int>& d) {
     sortDeque(winners);
 
     std::deque<bool> used (pairs.size(), false);
-    std::deque<int> pend;
+    std::deque<int> pend (pairs.size(), 0);
 
-    for (std::size_t i = 0; i < winners.size() ; ++i) {
-        for (std::size_t j = 0; j < pairs.size(); ++j) {
-            if (!used[j] && pairs[j].first == winners[i]) {
-                used[j] = true;
-                pend.push_back(pairs[j].second);
-                break;
-            }
-        }
+    for (std::size_t j = 0; j < pairs.size(); ++j) {
+        std::size_t p = std::lower_bound(winners.begin(), winners.end(), pairs[j].first) - winners.begin();
+        while (used[p])
+            ++p;
+        used[p] = true;
+        pend[p] = pairs[j].second;
     }
 
-    std::deque<int> main = winners;
-    main.insert(main.begin(), pend[0]);
+    std::deque<int> chain = winners;
+    chain.insert(chain.begin(), pend[0]);
 
     std::size_t m = pend.size();
     std::size_t prev = 1;
@@ -149,23 +147,24 @@ void PmergeMe::sortDeque(std::deque<int>& d) {
             int loser = pend[i - 1];
             int winner = winners[i - 1];
 
-            std::deque<int>::iterator partnerPos = std::lower_bound(main.begin(), main.end(), winner);
-            std::deque<int>::iterator pos = std::lower_bound(main.begin(), partnerPos, loser);
+            std::deque<int>::iterator partnerPos = std::lower_bound(chain.begin(), chain.end(), winner);
+            std::deque<int>::iterator pos = std::lower_bound(chain.begin(), partnerPos, loser);
 
-            main.insert(pos, loser);
+            chain.insert(pos, loser);
         }
 
         prev = j;
+        std::size_t next = jPrev1 + 2 * jPrev2;
         jPrev2 = jPrev1;
-        jPrev1 = jPrev1 + 2 * jPrev2;
+        jPrev1 = next;
     }
 
     if (hasStraggler)
     {
-        std::deque<int>::iterator pos = std::lower_bound(main.begin(), main.end(), straggler);
-        main.insert(pos, straggler);
+        std::deque<int>::iterator pos = std::lower_bound(chain.begin(), chain.end(), straggler);
+        chain.insert(pos, straggler);
     }
-    d = main;
+    d = chain;
 }
 
 bool PmergeMe::parse(int ac, char **av) {
@@ -175,7 +174,7 @@ bool PmergeMe::parse(int ac, char **av) {
         if (token.empty())
             return false;
 
-        for (int j = 0; token[j] != '\0'; j++) {
+        for (std::size_t j = 0; j < token.size(); j++) {
             char c = token[j];
             if (!isdigit(static_cast<unsigned char> (c)))
                 return false;
